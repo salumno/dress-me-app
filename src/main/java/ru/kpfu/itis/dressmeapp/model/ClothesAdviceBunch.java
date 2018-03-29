@@ -2,7 +2,7 @@ package ru.kpfu.itis.dressmeapp.model;
 
 import lombok.*;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Created by Melnikov Semen
@@ -15,5 +15,5 @@ import java.util.Map;
 @Setter
 @Builder
 public class ClothesAdviceBunch {
-    private Map<String, ClothesItem> clothesItemMap;
+    private List<ClothesItem> clothesItems;
 }

@@ -132,6 +132,6 @@ public class ClassificationUtil {
     }
 
     private String parseClassificationAnswer(String result) {
-        return result.split(" ")[0];
+        return result.split(" ")[0].toUpperCase();
     }
 }
