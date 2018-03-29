@@ -18,10 +18,13 @@ import java.util.concurrent.Future;
 public class ClassificationUtil {
     private final String containerName = "tensorflow";
 
-    private final String femaleFaceClassifier = "female-face-classify.py";
-    private final String femaleProfileClassifier = "female-profile-classify.py";
-    private final String maleFaceClassifier = "male-face-classify.py";
-    private final String maleProfileClassifier = "male-profile-classify.py";
+    private final String femaleFacePrefix = "female_face_";
+    private final String femaleProfilePrefix = "female_profile_";
+    private final String maleFacePrefix = "male_face_";
+    private final String maleProfilePrefix = "male_profile_";
+
+    private final String labelsPathSuffix = "output_labels.txt";
+    private final String graphPathSuffix = "output_graph.pb";
 
     private DockerUtil dockerUtil;
     private ExecutorService executorService;
@@ -126,21 +129,23 @@ public class ClassificationUtil {
     }
 
     private String detectRightClassifier(String fileName, Sex sex, ImageType type) {
-        String classifierName = "";
+        String prefix = "";
         if (sex.equals(Sex.FEMALE)) {
             if (ImageType.FACE.equals(type)) {
-                classifierName = femaleFaceClassifier;
+                prefix = femaleFacePrefix;
             } else {
-                classifierName = femaleProfileClassifier;
+                prefix = femaleProfilePrefix;
             }
         } else if (sex.equals(Sex.MALE)) {
             if (ImageType.FACE.equals(type)) {
-                classifierName = maleFaceClassifier;
+                prefix = maleFacePrefix;
             } else {
-                classifierName = maleProfileClassifier;
+                prefix = maleProfilePrefix;
             }
         }
-        return "python " + classifierName + " bw-" + fileName;
+        String graphPath = prefix + graphPathSuffix;
+        String labelsPath = prefix + labelsPathSuffix;
+        return "python classify.py bw-" + fileName + " " + graphPath + " " + labelsPath;
     }
 
     private String parseClassificationAnswer(String result) {
