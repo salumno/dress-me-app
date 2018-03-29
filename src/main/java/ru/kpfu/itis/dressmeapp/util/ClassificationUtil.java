@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 import ru.kpfu.itis.dressmeapp.model.*;
 
 import java.io.ByteArrayOutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Created by Melnikov Semen
@@ -21,15 +24,24 @@ public class ClassificationUtil {
     private final String maleProfileClassifier = "male-profile-classify.py";
 
     private DockerUtil dockerUtil;
+    private ExecutorService executorService;
 
     public ClassificationUtil(DockerUtil dockerUtil) {
         this.dockerUtil = dockerUtil;
+        executorService = Executors.newCachedThreadPool();
     }
 
+    @SneakyThrows
     public String startClassification(ClassifiedImageFilenameDuo filenameDuo, String sex) {
         Sex sexEnum = Sex.valueOf(sex);
-        String faceResult = classifyImage(filenameDuo.getFaceFileName(), sexEnum, ImageType.FACE);
-        String profileResult = classifyImage(filenameDuo.getProfileFileName(), sexEnum, ImageType.PROFILE);
+        Future<String> faceResultFuture = executorService.submit(
+                () -> classifyImage(filenameDuo.getFaceFileName(), sexEnum, ImageType.FACE)
+        );
+        Future<String> profileResultFuture = executorService.submit(
+                () -> classifyImage(filenameDuo.getProfileFileName(), sexEnum, ImageType.PROFILE)
+        );
+        String faceResult = faceResultFuture.get();
+        String profileResult = profileResultFuture.get();
         return resultClassification(faceResult, profileResult, sexEnum);
     }
 
