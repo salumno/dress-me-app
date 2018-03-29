@@ -1,96 +1,183 @@
 <html>
-    <head>
-        <link href="/css/styles.css" rel="stylesheet"/>
-        <script src="/js/jquery.js"></script>
-        <script>
-            function uploadImagesForClassification() {
-                var form = $('#classifier-form')[0];
-                var data = new FormData(form);
-                writeResultLoadingImage();
-                $.ajax({
-                    url: '/upload',
-                    type: 'POST',
-                    data: data,
-                    dataType: 'json',
-                    enctype: 'multipart/form-data',
-                    contentType: false,
-                    processData: false,
-                    success: function (data) {
-                        writeResult(data);
-                    },
-                    error: function () {
-                        console.log('sendFileByAjax method error')
-                    }
-                })
-            }
+<head>
+    <!-- Bootstrap core CSS -->
+    <link href="/mdbootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Material Design Bootstrap -->
+    <link href="/mdbootstrap/css/mdb.min.css" rel="stylesheet">
 
-            function writeResult(data) {
-                let resultText = $('#inside-result-text');
-                resultText.html('');
-                var clothes = data;
-                for (var i = 0; i < clothes.length; i++) {
-                    var fileInfoId = clothes[i].fileInfo.id;
-                    resultText.append(
-                        '<img src="/file/' + fileInfoId + '" width="400">'
-                    );
+    <!-- SCRIPTS -->
+    <!-- JQuery -->
+    <script type="text/javascript" src="/mdbootstrap/js/jquery-3.2.1.min.js"></script>
+    <!-- Bootstrap tooltips -->
+    <script type="text/javascript" src="/mdbootstrap/js/popper.min.js"></script>
+    <!-- Bootstrap core JavaScript -->
+    <script type="text/javascript" src="/mdbootstrap/js/bootstrap.min.js"></script>
+    <!-- MDB core JavaScript -->
+    <script type="text/javascript" src="/mdbootstrap/js/mdb.min.js"></script>
+    <script src="/js/showUploadedImage.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark primary-color fixed-top">
+        <a class="navbar-brand" href="/">DressMeApp</a>
+    </nav>
+    <div class="container" style="padding-top: 90px">
+        <div>
+            <h3 style="text-align: center">Рекомендации по выбору одежды на основе Вашего телосложения</h3>
+        </div>
+        <form id="classifier-form" enctype="multipart/form-data" >
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label for="face">Фотография в фас</label>
+                        <input class="form-control" type="file" name="face" id="face" accept="image/*"><br>
+                        <div class="row">
+                            <div class="col-md-2"></div>
+                            <div class="col-md-10">
+                                <img id="face-image" src="" alt="Тут будет Ваш фас" width="300" height="400">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="profile">Фотография в профиль</label>
+                        <input class="form-control" type="file" name="profile" id="profile" accept="image/*"><br>
+                        <div class="row">
+                            <div class="col-md-2"></div>
+                            <div class="col-md-10">
+                                <img id="profile-image" src="" alt="Тут будет Ваш профиль" width="300" height="400">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="select-sex"></label>
+                        <select class="form-control" id="select-sex" name="sex" form="classifier-form">
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-4"></div>
+                    <div id="submit-button-place" class="col-md-4">
+                        <button onclick="uploadImagesForClassification()" class="btn btn-success form-control" type="button">получить рекомендации</button>
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
+            </div>
+        </form>
+        <div class="table-responsive">
+            <table id="result-table" class="table">
+            </table>
+        </div>
+    </div>
+    <footer class="page-footer font-small primary-color pt-4 mt-4">
+        <div class="container-fluid text-center text-md-left">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase font-weight-bold">
+                        <strong>AIBegginers</strong>
+                    </h6>
+                    <hr class="deep-purple accent-2 mb-4 mt-0 d-inline-block mx-auto" style="width: 60px;">
+                    <p>Предлагаем решения, которые подчеркнут Ваши достоинства и сгладят недостатки.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="text-uppercase font-weight-bold">
+                        <strong>Contact</strong>
+                    </h6>
+                    <hr class="deep-purple accent-2 mb-4 mt-0 d-inline-block mx-auto" style="width: 60px;">
+                    <p>
+                        <i class="fa glyphicon-home mr-3"></i> КФУ, Кремлевская 35, Казань, Россия</p>
+                    <p>
+                        <i class="fa glyphicon-envelope mr-3"></i> dressmeapp@example.com</p>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright py-3 text-center">
+            © 2018 Copyright:
+            <a href="http://itis.kpfu.ru"> Высшая школа ИТИС КФУ </a>
+        </div>
+    </footer>
+
+
+    <script>
+        $( document ).ready(function start() {
+            var faceInput = document.getElementById('face');
+            faceInput.addEventListener('change', handleFileSelect, false);
+            faceInput.outputId = 'face-image';
+
+            var profileInput = document.getElementById('profile');
+            profileInput.addEventListener('change', handleFileSelect, false);
+            profileInput.outputId = 'profile-image';
+        });
+
+        function uploadImagesForClassification() {
+            var form = $('#classifier-form')[0];
+            var data = new FormData(form);
+            pasteResultLoadingImage();
+            $.ajax({
+                url: '/upload',
+                type: 'POST',
+                data: data,
+                dataType: 'json',
+                enctype: 'multipart/form-data',
+                contentType: false,
+                processData: false,
+                success: function (data) {
+                    pasteClassificationSubmitButton();
+                    writeResult(data);
+                },
+                error: function () {
+                    console.log('sendFileByAjax method error')
                 }
-            }
+            })
+        }
 
-            function writeResultLoadingImage() {
-                $('#inside-result-text').html('');
-                $('#inside-result-text').append(
-                        '<img src="/images/loading.gif" width="400" class="loading-image">'
-                )
+        function writeResult(data) {
+            let resultTable = $('#result-table');
+            resultTable.html('');
+            resultTable.append(
+                    '<thead>' +
+                    '<tr>' +
+                    '<th>Слой 1</th>' +
+                    '<th>Слой 1.5</th>' +
+                    '<th>Слой 2</th>' +
+                    '<th>Слой 11</th>' +
+                    '</tr>' +
+                    '</thead>' +
+                    '<tbody>' +
+                    '<tr id="image-row">' +
+                    '</tr>' +
+                    '</tbody>'
+            );
+            let resultRow = $('#image-row');
+            var clothes = data;
+            for (var i = 0; i < clothes.length; i++) {
+                var fileInfoId = clothes[i].fileInfo.id;
+                resultRow.append(
+                        '<td><img src="/file/' + fileInfoId + '" width="200"></td>'
+                );
             }
-        </script>
-    </head>
-    <body>
-    <div class="header">
-        <div id="inside-header-text">
-            DressMeApp
-        </div>
-    </div>
-    <div class="data">
-        <div class="left-half">
-            <div id = "file-form">
-                <div id="file-form-title">
-                    Classify your body type
-                </div>
-                <div id="file-form-form">
-                    <form id="classifier-form" enctype="multipart/form-data" >
-                        <div class="file-form-button">
-                            <label for="select-sex"></label>
-                            <select id="select-sex" name="sex" form="classifier-form">
-                                <option value="MALE">Male</option>
-                                <option value="FEMALE">Female</option>
-                            </select>
-                        </div>
-                        <div class="file-form-button">
-                            <label for="face">Фотография в фас</label>
-                            <input type="file" name="face" id="face" accept="image/*"><br>
-                        </div>
-                        <div class="file-form-button">
-                            <label for="profile">Фотография в профиль</label>
-                            <input type="file" name="profile" id="profile" accept="image/*"><br>
-                        </div>
-                        <div class="file-form-button">
-                            <button onclick="uploadImagesForClassification()" class="btn" type="button">Upload file</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="right-half">
-            <div id="result">
-                <ul id="inside-result-text">
-                </ul>
-            </div>
-        </div>
-    </div>
-    <div class="footer">
-        <div id="inside-footer-text">
-            AI Beginners
-        </div>
-    </div>
-    </body>
+        }
+
+
+        function pasteClassificationSubmitButton() {
+            $('#submit-button-place').html('');
+            $('#submit-button-place').append(
+                    '<button onclick="uploadImagesForClassification()" class="btn btn-success form-control" type="button">получить рекомендации</button>'
+            )
+        }
+
+        function pasteResultLoadingImage() {
+            $('#submit-button-place').html('');
+            $('#submit-button-place').append(
+                    '<img src="/images/loading.gif" width="300" height="300">'
+            )
+        }
+    </script>
+</body>
 </html>
