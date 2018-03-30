@@ -45,6 +45,8 @@ public class ClassificationUtil {
         );
         String faceResult = faceResultFuture.get();
         String profileResult = profileResultFuture.get();
+        System.out.println("Face classification result: " + faceResult);
+        System.out.println("Profile classification result: " + profileResult);
         return resultClassification(faceResult, profileResult, sexEnum);
     }
 
@@ -82,8 +84,8 @@ public class ClassificationUtil {
 
         } else if (profile.equals(ProfileBodyType.OVERWEIGHT)) {
 
-            if (face.equals(FaceFemaleBodyType.INVERTED_TRIANGLE)) {
-                throw new IllegalArgumentException("Invalid type. Try another photos.");
+            if (face.equals(FaceFemaleBodyType.INVERTED)) {
+                return FaceFemaleBodyType.APPLE.toString();
             } else {
                 return face.toString();
             }
@@ -110,8 +112,8 @@ public class ClassificationUtil {
 
         } else if (profile.equals(ProfileBodyType.OVERWEIGHT)) {
 
-            if (face.equals(FaceMaleBodyType.INVERTED_TRIANGLE)) {
-                throw new IllegalArgumentException("Invalid type. Try another photos.");
+            if (face.equals(FaceMaleBodyType.INVERTED)) {
+                return FaceMaleBodyType.OVAL.toString();
             } else {
                 return face.toString();
             }

@@ -35,6 +35,7 @@ public class AdviserController {
     @PostMapping("/upload")
     public List<ClothesItem> classifyImage(@ModelAttribute UserPhotoUploadForm form) {
         String resultBodyType = imageClassificationService.classify(form);
+        System.out.println(resultBodyType);
         return clothesService.getClothesAdvice(resultBodyType, Sex.valueOf(form.getSex()));
     }
 }

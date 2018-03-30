@@ -24,6 +24,7 @@
         <div>
             <h3 style="text-align: center">Рекомендации по выбору одежды на основе Вашего телосложения</h3>
         </div>
+        <div id="alert-message"></div>
         <form id="classifier-form" enctype="multipart/form-data" >
             <div class="form-group">
                 <div class="row">
@@ -116,6 +117,7 @@
         });
 
         function uploadImagesForClassification() {
+            $("#alert-message").html("");
             var form = $('#classifier-form')[0];
             var data = new FormData(form);
             pasteResultLoadingImage();
@@ -132,9 +134,20 @@
                     writeResult(data);
                 },
                 error: function () {
+                    pasteErrorAlertMessage("Извините, что-то пошло не так. Попробуйте другие фотографии.");
+                    pasteClassificationSubmitButton();
                     console.log('sendFileByAjax method error')
                 }
             })
+        }
+
+        function pasteErrorAlertMessage(message) {
+            $("#alert-message").html("");
+            $("#alert-message").append(
+                '<div class="alert alert-danger">' +
+                    '<strong>Упсс :(</strong>' + message + ' ' +
+                '</div>'
+            );
         }
 
         function writeResult(data) {
