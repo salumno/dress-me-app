@@ -141,34 +141,45 @@
             })
         }
 
-        function pasteErrorAlertMessage(message) {
+        function pasteErrorAlertMessage(messageType) {
             $("#alert-message").html("");
+            var message = messageType;
+            if (messageType === "no-result") {
+                message = "Извините, результат классификации данных фотографий имеет низкую точность.\nПожалуйста, попробуйте загрузить другие фотографии в соответствии с инструкцией."
+            } else if (messageType === "failed") {
+                message = "Извините, данные фотографии не могут быть подвержены классификации.\nПопробуйте загрузить другие фотографии в соответствии с инструкцией."
+            }
             $("#alert-message").append(
-                '<div class="alert alert-danger">' +
-                    '<strong>Упсс :(</strong>' + message + ' ' +
+                '<div class="alert alert-danger alert-dismissible">' +
+                    '<a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' +
+                    '<strong>Упсс...</strong> ' + message + ' ' +
                 '</div>'
             );
         }
 
         function writeResult(data) {
             let resultTable = $('#result-table');
+            var clothes = data.clothesItems;
+            if (clothes.length === 0) {
+                pasteErrorAlertMessage(data.type);
+                return;
+            }
             resultTable.html('');
             resultTable.append(
                     '<thead>' +
-                    '<tr>' +
-                    '<th>Слой 1</th>' +
-                    '<th>Слой 1.5</th>' +
-                    '<th>Слой 2</th>' +
-                    '<th>Слой 11</th>' +
-                    '</tr>' +
+                        '<tr>' +
+                            '<th>Слой 1</th>' +
+                            '<th>Слой 1.5</th>' +
+                            '<th>Слой 2</th>' +
+                            '<th>Слой 11</th>' +
+                        '</tr>' +
                     '</thead>' +
                     '<tbody>' +
-                    '<tr id="image-row">' +
-                    '</tr>' +
+                        '<tr id="image-row">' +
+                        '</tr>' +
                     '</tbody>'
             );
             let resultRow = $('#image-row');
-            var clothes = data;
             for (var i = 0; i < clothes.length; i++) {
                 var fileInfoId = clothes[i].fileInfo.id;
                 resultRow.append(

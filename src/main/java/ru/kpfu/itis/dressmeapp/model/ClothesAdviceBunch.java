@@ -15,5 +15,6 @@ import java.util.List;
 @Setter
 @Builder
 public class ClothesAdviceBunch {
+    private String type;
     private List<ClothesItem> clothesItems;
 }

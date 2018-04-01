@@ -5,12 +5,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import ru.kpfu.itis.dressmeapp.form.UserPhotoUploadForm;
-import ru.kpfu.itis.dressmeapp.model.ClothesItem;
+import ru.kpfu.itis.dressmeapp.model.ClothesAdviceBunch;
 import ru.kpfu.itis.dressmeapp.model.Sex;
 import ru.kpfu.itis.dressmeapp.services.ClothesService;
 import ru.kpfu.itis.dressmeapp.services.ImageClassificationService;
-
-import java.util.List;
 
 /**
  * created by Iskander Valiev
@@ -33,7 +31,7 @@ public class AdviserController {
 
     @ResponseBody
     @PostMapping("/upload")
-    public List<ClothesItem> classifyImage(@ModelAttribute UserPhotoUploadForm form) {
+    public ClothesAdviceBunch classifyImage(@ModelAttribute UserPhotoUploadForm form) {
         String resultBodyType = imageClassificationService.classify(form);
         System.out.println(resultBodyType);
         return clothesService.getClothesAdvice(resultBodyType, Sex.valueOf(form.getSex()));

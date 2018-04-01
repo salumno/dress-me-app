@@ -16,15 +16,18 @@ import java.util.concurrent.Future;
 
 @Component
 public class ClassificationUtil {
-    private final String containerName = "tensorflow";
+    private final String CONTAINER_NAME = "tensorflow";
 
-    private final String femaleFacePrefix = "female_face_";
-    private final String femaleProfilePrefix = "female_profile_";
-    private final String maleFacePrefix = "male_face_";
-    private final String maleProfilePrefix = "male_profile_";
+    private final String FEMALE_FACE_PREFIX = "female_face_";
+    private final String FEMALE_PROFILE_PREFIX = "female_profile_";
+    private final String MALE_FACE_PREFIX = "male_face_";
+    private final String MALE_PROFILE_PREFIX = "male_profile_";
 
-    private final String labelsPathSuffix = "output_labels.txt";
-    private final String graphPathSuffix = "output_graph.pb";
+    private final String LABELS_PATH_SUFFIX = "output_labels.txt";
+    private final String GRAPH_PATH_SUFFIX = "output_graph.pb";
+
+    public final static String CLASSIFICATION_COMPLETELY_FAILED = "failed";
+    public final static String CLASSIFICATION_DONT_HAVE_RESULT = "no-result";
 
     private DockerUtil dockerUtil;
     private ExecutorService executorService;
@@ -52,14 +55,20 @@ public class ClassificationUtil {
 
     @SneakyThrows
     private String classifyImage(String filename, Sex sex, ImageType type) {
+        System.out.println("Classification started");
         String[] command = getImageClassificationCommand(filename, sex, type);
         ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
-        dockerUtil.execDockerCmd(containerName, command, resultStream);
+        dockerUtil.execDockerCmd(CONTAINER_NAME, command, resultStream);
         String rawResult =  new String(resultStream.toByteArray(), "UTF-8");
-        return parseClassificationAnswer(rawResult);
+        return classificationAnswer(rawResult);
     }
 
     private String resultClassification(String faceResult, String profileResult, Sex sex) {
+        if (faceResult.equals(CLASSIFICATION_COMPLETELY_FAILED) || profileResult.equals(CLASSIFICATION_COMPLETELY_FAILED)) {
+            return CLASSIFICATION_COMPLETELY_FAILED;
+        } else if (faceResult.equals(CLASSIFICATION_DONT_HAVE_RESULT) || profileResult.equals(CLASSIFICATION_DONT_HAVE_RESULT)) {
+            return CLASSIFICATION_DONT_HAVE_RESULT;
+        }
         if (sex.equals(Sex.MALE)) {
             return resultMaleClassification(faceResult, profileResult);
         } else {
@@ -73,7 +82,7 @@ public class ClassificationUtil {
         if (profile.equals(ProfileBodyType.THIN)) {
 
             if (face.equals(FaceFemaleBodyType.APPLE) || face.equals(FaceFemaleBodyType.PEAR)) {
-                throw new IllegalArgumentException("Invalid type. Try another photos.");
+                return CLASSIFICATION_DONT_HAVE_RESULT;
             } else {
                 return face.toString();
             }
@@ -91,7 +100,7 @@ public class ClassificationUtil {
             }
 
         } else {
-            throw new IllegalArgumentException("Invalid profile body type value");
+            return CLASSIFICATION_COMPLETELY_FAILED;
         }
     }
 
@@ -101,7 +110,7 @@ public class ClassificationUtil {
         if (profile.equals(ProfileBodyType.THIN)) {
 
             if (face.equals(FaceMaleBodyType.TRIANGLE) || face.equals(FaceMaleBodyType.OVAL)) {
-                throw new IllegalArgumentException("Invalid type. Try another photos.");
+                return CLASSIFICATION_DONT_HAVE_RESULT;
             } else {
                 return face.toString();
             }
@@ -119,7 +128,7 @@ public class ClassificationUtil {
             }
 
         } else {
-            throw new IllegalArgumentException("Invalid profile body type value");
+            return CLASSIFICATION_COMPLETELY_FAILED;
         }
     }
 
@@ -134,23 +143,33 @@ public class ClassificationUtil {
         String prefix = "";
         if (sex.equals(Sex.FEMALE)) {
             if (ImageType.FACE.equals(type)) {
-                prefix = femaleFacePrefix;
+                prefix = FEMALE_FACE_PREFIX;
             } else {
-                prefix = femaleProfilePrefix;
+                prefix = FEMALE_PROFILE_PREFIX;
             }
         } else if (sex.equals(Sex.MALE)) {
             if (ImageType.FACE.equals(type)) {
-                prefix = maleFacePrefix;
+                prefix = MALE_FACE_PREFIX;
             } else {
-                prefix = maleProfilePrefix;
+                prefix = MALE_PROFILE_PREFIX;
             }
         }
-        String graphPath = prefix + graphPathSuffix;
-        String labelsPath = prefix + labelsPathSuffix;
+        String graphPath = prefix + GRAPH_PATH_SUFFIX;
+        String labelsPath = prefix + LABELS_PATH_SUFFIX;
         return "python classify.py bw-" + fileName + " " + graphPath + " " + labelsPath;
     }
 
-    private String parseClassificationAnswer(String result) {
-        return result.split(" ")[0].toUpperCase();
+    private String classificationAnswer(String result) {
+        String[] parsedResult = result.split(" ");
+        String type = parsedResult[0].toUpperCase();
+        Double probability  = Double.parseDouble(parsedResult[1]);
+        System.out.println("Probability: " + probability);
+        if (probability >= 0.75) {
+            return type;
+        } else if (probability >= 0.50 && probability < 0.75) {
+            return CLASSIFICATION_DONT_HAVE_RESULT;
+        } else {
+            return CLASSIFICATION_COMPLETELY_FAILED;
+        }
     }
 }

@@ -4,12 +4,10 @@ import com.google.common.collect.Lists;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.kpfu.itis.dressmeapp.form.ClothesItemAddForm;
-import ru.kpfu.itis.dressmeapp.model.ClothesItem;
-import ru.kpfu.itis.dressmeapp.model.ClothesItemCategory;
-import ru.kpfu.itis.dressmeapp.model.FileInfo;
-import ru.kpfu.itis.dressmeapp.model.Sex;
+import ru.kpfu.itis.dressmeapp.model.*;
 import ru.kpfu.itis.dressmeapp.repositories.ClothesItemRepository;
 import ru.kpfu.itis.dressmeapp.services.ClothesService;
+import ru.kpfu.itis.dressmeapp.util.ClassificationUtil;
 import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
 
 import java.util.List;
@@ -33,15 +31,17 @@ public class ClothesServiceImpl implements ClothesService {
     }
 
     @Override
-    public List<ClothesItem> getClothesAdvice(String bodyType, Sex sex) {
+    public ClothesAdviceBunch getClothesAdvice(String bodyType, Sex sex) {
         List<ClothesItem> clothesItems = Lists.newArrayList();
-        for (ClothesItemCategory category: ClothesItemCategory.values()) {
-            List<ClothesItem> items = clothesItemRepository.findAllBySexAndBodyTypeAndCategory(sex, bodyType, category);
-            int randomIndex = calculateRandomIndex(items.size());
-            ClothesItem randomItem = items.get(randomIndex);
-            clothesItems.add(randomItem);
+        if (!bodyType.equals(ClassificationUtil.CLASSIFICATION_DONT_HAVE_RESULT) && !bodyType.equals(ClassificationUtil.CLASSIFICATION_COMPLETELY_FAILED)) {
+            for (ClothesItemCategory category: ClothesItemCategory.values()) {
+                List<ClothesItem> items = clothesItemRepository.findAllBySexAndBodyTypeAndCategory(sex, bodyType, category);
+                int randomIndex = calculateRandomIndex(items.size());
+                ClothesItem randomItem = items.get(randomIndex);
+                clothesItems.add(randomItem);
+            }
         }
-        return clothesItems;
+        return ClothesAdviceBunch.builder().type(bodyType).clothesItems(clothesItems).build();
     }
 
     @Override
