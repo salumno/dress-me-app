@@ -71,9 +71,8 @@
                 </div>
             </div>
         </form>
-        <div class="table-responsive">
-            <table id="result-table" class="table">
-            </table>
+        <div id="result-row" class="row">
+
         </div>
     </div>
     <footer class="page-footer font-small primary-color pt-4 mt-4">
@@ -148,6 +147,8 @@
                 message = "Извините, результат классификации данных фотографий имеет низкую точность.\nПожалуйста, попробуйте загрузить другие фотографии в соответствии с инструкцией."
             } else if (messageType === "failed") {
                 message = "Извините, данные фотографии не могут быть подвержены классификации.\nПопробуйте загрузить другие фотографии в соответствии с инструкцией."
+            } else if (messageType === "limit") {
+                message = "Извините, превышен лимит запросов. Попробуйте немного позже - система будет умнее, мы Вам гарантируем.";
             }
             $("#alert-message").append(
                 '<div class="alert alert-danger alert-dismissible">' +
@@ -158,34 +159,81 @@
         }
 
         function writeResult(data) {
-            let resultTable = $('#result-table');
-            var clothes = data.clothesItems;
-            if (clothes.length === 0) {
+            let resultRow = $('#result-row');
+            if (data == null) {
+                pasteErrorAlertMessage('limit');
+                return;
+            }
+            var lookImage = data.lookImage;
+            if (lookImage == null) {
                 pasteErrorAlertMessage(data.type);
                 return;
             }
-            resultTable.html('');
-            resultTable.append(
-                    '<thead>' +
-                        '<tr>' +
-                            '<th>Слой 1</th>' +
-                            '<th>Слой 1.5</th>' +
-                            '<th>Слой 2</th>' +
-                            '<th>Слой 11</th>' +
-                        '</tr>' +
-                    '</thead>' +
-                    '<tbody>' +
-                        '<tr id="image-row">' +
-                        '</tr>' +
-                    '</tbody>'
+            resultRow.html('');
+            resultRow.append(
+                '<h3>Мы предлагаем Вам следующий вариант</h3>' +
+                '<div class="col-md-4">' +
+                    '<img src="/images/dislike.jpg" width="100" height="100" alt="Не нравится" onclick="userSaidDislike(' + lookImage.id + ')">' +
+                '</div>' +
+                '<div class="col-md-4">' +
+                    '<img src="/file/' + lookImage.fileInfo.id + '" width="400">' +
+                '</div>' +
+                '<div class="col-md-4">' +
+                    '<img src="/images/like.jpg" width="100" height="100" alt="Нравится" onclick="userSaidLike(' + lookImage.id + ')">' +
+                '</div>'
             );
-            let resultRow = $('#image-row');
-            for (var i = 0; i < clothes.length; i++) {
-                var fileInfoId = clothes[i].fileInfo.id;
-                resultRow.append(
-                        '<td><img src="/file/' + fileInfoId + '" width="200"></td>'
-                );
-            }
+        }
+
+        function clearResultRow() {
+            $('#result-row').html("")
+        }
+
+        function userSaidLike(lookImageId) {
+            clearResultRow();
+            pasteResultLoadingImage();
+            $.ajax({
+                url: '/look/' + lookImageId + "/like",
+                type: 'GET',
+                dataType: 'text',
+                success: function (data) {
+                    pasteClassificationSubmitButton();
+                    writeLikeResult(data);
+                },
+                error: function () {
+                    pasteErrorAlertMessage("Извините, что-то пошло не так. Попробуйте другие фотографии.");
+                    pasteClassificationSubmitButton();
+                    console.log('sendFileByAjax method error')
+                }
+            })
+        }
+
+        function writeLikeResult(data) {
+            let resultRow = $('#result-row');
+            $('#classifier-form').reset()
+            console.log(data);
+            resultRow.append(
+                    '<h3 style="text-align: center">Мы рады, что Вам понравился предложенный набор!</h3>'
+            );
+
+        }
+
+        function userSaidDislike(lookImageId) {
+            clearResultRow();
+            pasteResultLoadingImage();
+            $.ajax({
+                url: '/look/' + lookImageId + "/dislike",
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    pasteClassificationSubmitButton();
+                    writeResult(data);
+                },
+                error: function () {
+                    pasteErrorAlertMessage("Извините, что-то пошло не так. Попробуйте другие фотографии.");
+                    pasteClassificationSubmitButton();
+                    console.log('sendFileByAjax method error')
+                }
+            })
         }
 
 

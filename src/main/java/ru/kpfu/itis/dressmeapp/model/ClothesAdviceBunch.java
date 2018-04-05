@@ -16,5 +16,5 @@ import java.util.List;
 @Builder
 public class ClothesAdviceBunch {
     private String type;
-    private List<ClothesItem> clothesItems;
+    private LookImage lookImage;
 }

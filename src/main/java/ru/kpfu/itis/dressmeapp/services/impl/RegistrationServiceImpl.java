@@ -9,6 +9,7 @@ import ru.kpfu.itis.dressmeapp.repositories.UserDataRepository;
 import ru.kpfu.itis.dressmeapp.repositories.UserRepository;
 import ru.kpfu.itis.dressmeapp.security.role.Role;
 import ru.kpfu.itis.dressmeapp.services.RegistrationService;
+import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
 
 /**
  * Created by Melnikov Semen
@@ -21,11 +22,13 @@ public class RegistrationServiceImpl implements RegistrationService {
     private UserDataRepository userDataRepository;
     private UserRepository userRepository;
     private PasswordEncoder passwordEncoder;
+    private FileStorageUtil fileStorageUtil;
 
-    public RegistrationServiceImpl(UserDataRepository userDataRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public RegistrationServiceImpl(UserDataRepository userDataRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, FileStorageUtil fileStorageUtil) {
         this.userDataRepository = userDataRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.fileStorageUtil = fileStorageUtil;
     }
 
     @Override
@@ -40,8 +43,9 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .user(user)
                 .build();
         userDataRepository.save(userData);
+        fileStorageUtil.createUserFolder(userData.getId());
 
-        // TODO: 05.04.18 Создать папку в local докера для liked/disliked луков
-        // TODO: 05.04.18 Обучить сетку на пустых данных?
+        // TODO: 05.04.18 Add preset data to the folder
     }
+
 }

@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -36,6 +37,22 @@ public class FileStorageUtil {
 
     public FileStorageUtil(FileInfoRepository fileInfoRepository) {
         this.fileInfoRepository = fileInfoRepository;
+    }
+
+    @SneakyThrows
+    public void createUserFolder(Long userId) {
+        String storagePath = getUserFolderPath(userId);
+        String likeSubfolderPath = storagePath + "/like";
+        String dislikeSubfolderPath = storagePath + "/dislike";
+        String[] paths = { storagePath, likeSubfolderPath, dislikeSubfolderPath };
+        for (String dir: paths) {
+            Path path = Paths.get(dir);
+            Files.createDirectories(path);
+        }
+    }
+
+    private String getUserFolderPath(Long userId) {
+        return storagePath + "/" + "user-" + userId;
     }
 
     public FileInfo getImageFileInfoByMultipart(MultipartFile file) {
@@ -103,4 +120,38 @@ public class FileStorageUtil {
         IOUtils.copy(inputStream, response.getOutputStream());
         response.flushBuffer();
     }
+
+    public FileInfo createUserLookFileInfo(Long userId) {
+        String name = "user-look.jpg";
+        FileInfo fileInfo = FileInfo.builder()
+                .originalFileName(name)
+                .storageFileName(createStorageFileName(name))
+                .type("image/jpeg")
+                .build();
+        fileInfo.setPath(getLookImageFullPath(fileInfo.getStorageFileName(), userId));
+        return fileInfo;
+    }
+
+    private String getLookImageFullPath(String storageFileName, Long userId) {
+        return getUserFolderPath(userId) + "/" + storageFileName;
+    }
+
+    public void putFileIntoUserDislikedFolder(Long userId, FileInfo fileInfo) {
+        moveFileIntoSubfolder("dislike", fileInfo, userId);
+    }
+
+    public void putFileIntoUserLikedFolder(Long userId, FileInfo fileInfo) {
+        moveFileIntoSubfolder("like", fileInfo, userId);
+    }
+
+    @SneakyThrows
+    private void moveFileIntoSubfolder(String subfolderName, FileInfo fileInfo, Long userId) {
+        String newPath = getUserFolderPath(userId) + "/" + subfolderName + "/" + fileInfo.getStorageFileName();
+        Path currentDir = Paths.get(fileInfo.getPath());
+        Path newDir = Paths.get(newPath);
+        Files.move(currentDir, newDir);
+        fileInfo.setPath(newPath);
+        fileInfoRepository.save(fileInfo);
+    }
+
 }

@@ -1,9 +1,8 @@
 package ru.kpfu.itis.dressmeapp.controllers;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import ru.kpfu.itis.dressmeapp.form.UserPhotoUploadForm;
 import ru.kpfu.itis.dressmeapp.model.ClothesAdviceBunch;
 import ru.kpfu.itis.dressmeapp.model.Sex;
@@ -19,6 +18,7 @@ import ru.kpfu.itis.dressmeapp.services.ImageClassificationService;
  */
 
 @Controller
+@RestController
 public class AdviserController {
 
     private ImageClassificationService imageClassificationService;
@@ -29,11 +29,20 @@ public class AdviserController {
         this.clothesService = clothesService;
     }
 
-    @ResponseBody
     @PostMapping("/upload")
-    public ClothesAdviceBunch classifyImage(@ModelAttribute UserPhotoUploadForm form) {
+    public ClothesAdviceBunch classifyImage(@ModelAttribute UserPhotoUploadForm form, Authentication authentication) {
         String resultBodyType = imageClassificationService.classify(form);
         System.out.println(resultBodyType);
-        return clothesService.getClothesAdvice(resultBodyType, Sex.valueOf(form.getSex()));
+        return clothesService.getClothesAdvice(authentication, resultBodyType, Sex.valueOf(form.getSex()));
+    }
+
+    @GetMapping("/look/{id}/dislike")
+    public ClothesAdviceBunch userDislikedLook(@PathVariable("id") Long lookImageId, Authentication authentication) {
+        return clothesService.userDislikedLook(lookImageId, authentication);
+    }
+
+    @GetMapping("/look/{id}/like")
+    public String userLikedLook(@PathVariable("id") Long lookImageId, Authentication authentication) {
+        return clothesService.userLikedLook(lookImageId, authentication);
     }
 }
