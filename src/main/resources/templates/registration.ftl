@@ -34,6 +34,17 @@
                 <input type="password" name="repeatedPassword" placeholder="повторите пароль" class="form-control">
             </div>
             <div class="form-group">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label for="select-sex"></label>
+                        <select class="form-control" id="select-sex" name="sex">
+                            <option value="MALE">Male</option>
+                            <option value="FEMALE">Female</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
                 <button type="submit" class="btn btn-default">зарегистрироваться</button>
             </div>
         </form>

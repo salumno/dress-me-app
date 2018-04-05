@@ -1,6 +1,7 @@
 package ru.kpfu.itis.dressmeapp.util;
 
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.kpfu.itis.dressmeapp.model.ClothesItem;
 import ru.kpfu.itis.dressmeapp.model.FileInfo;
 import ru.kpfu.itis.dressmeapp.model.Image;
+import ru.kpfu.itis.dressmeapp.model.Sex;
 import ru.kpfu.itis.dressmeapp.repositories.FileInfoRepository;
 
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +28,13 @@ import java.util.UUID;
  */
 @Component
 public class FileStorageUtil {
+
+    private final String MALE_PRESET = "male-user-preset";
+    private final String FEMALE_PRESET = "female-user-preset";
+    private final String FEMALE_LABELS = "user_female_output_labels.txt";
+    private final String FEMALE_GRAPH = "user_female_output_graph.pb";
+    private final String MALE_LABELS = "user_male_output_labels.txt";
+    private final String MALE_GRAPH = "user_male_output_graph.pb";
 
     @Value("${storage.path}")
     private String storagePath;
@@ -154,4 +163,28 @@ public class FileStorageUtil {
         fileInfoRepository.save(fileInfo);
     }
 
+    @SneakyThrows
+    public void copyPresetToUserFolder(Long userId, Sex sex) {
+        String presetPath = storagePath + "/";
+        String userFolderPath = getUserFolderPath(userId);
+        Path graphPath;
+        Path labelsPath;
+        if (sex.equals(Sex.MALE)) {
+            graphPath = Paths.get(storagePath + "/" + MALE_GRAPH);
+            labelsPath = Paths.get(storagePath + "/" + MALE_LABELS);
+            presetPath += MALE_PRESET;
+        } else {
+            graphPath = Paths.get(storagePath + "/" + FEMALE_GRAPH);
+            labelsPath = Paths.get(storagePath + "/" + FEMALE_LABELS);
+            presetPath += FEMALE_PRESET;
+        }
+        File sourceLike = new File(presetPath + "/like");
+        File sourceDislike = new File(presetPath + "/dislike");
+        File destLike = new File(userFolderPath + "/like");
+        File destDislike = new File(userFolderPath + "/dislike");
+        FileUtils.copyDirectory(sourceLike, destLike);
+        FileUtils.copyDirectory(sourceDislike, destDislike);
+        Files.copy(graphPath, Paths.get(storagePath + "/user_" + userId + "_output_graph.pb"));
+        Files.copy(labelsPath, Paths.get(storagePath + "/user_" + userId + "_output_labels.txt"));
+    }
 }

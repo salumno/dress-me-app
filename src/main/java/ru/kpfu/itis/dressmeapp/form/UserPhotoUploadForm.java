@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class UserPhotoUploadForm {
-    private String sex;
     private MultipartFile face;
     private MultipartFile profile;
 }

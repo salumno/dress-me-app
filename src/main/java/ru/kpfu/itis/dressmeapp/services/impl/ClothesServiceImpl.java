@@ -44,22 +44,22 @@ public class ClothesServiceImpl implements ClothesService {
     }
 
     @Override
-    public ClothesAdviceBunch getClothesAdvice(Authentication authentication, String bodyType, Sex sex) {
+    public ClothesAdviceBunch getClothesAdvice(Authentication authentication, String bodyType) {
         ClothesAdviceBunch bunch = ClothesAdviceBunch.builder().type(bodyType).lookImage(null).build();
         User user = authenticationService.getUserByAuthentication(authentication).getUser();
         if (!bodyType.equals(ClassificationUtil.CLASSIFICATION_DONT_HAVE_RESULT) && !bodyType.equals(ClassificationUtil.CLASSIFICATION_COMPLETELY_FAILED)) {
-            LookImage lookImage = createLookImageForUser(user, bodyType, sex);
+            LookImage lookImage = createLookImageForUser(user, bodyType);
             lookImageRepository.save(lookImage);
             bunch.setLookImage(lookImage);
         }
         return bunch;
     }
 
-    private LookImage createLookImageForUser(User user, String bodyType, Sex sex) {
-        List<ClothesItem> clothesItems = formClothesItems(bodyType, sex);
+    private LookImage createLookImageForUser(User user, String bodyType) {
+        List<ClothesItem> clothesItems = formClothesItems(bodyType, user.getSex());
 
         FileInfo lookFileInfo = fileStorageUtil.createUserLookFileInfo(user.getId());
-        LookImage lookImage = LookImage.builder().user(user).fileInfo(lookFileInfo).bodyType(bodyType).sex(sex).tryCount(0).build();
+        LookImage lookImage = LookImage.builder().user(user).fileInfo(lookFileInfo).bodyType(bodyType).sex(user.getSex()).tryCount(0).build();
 
         putLookImageIntoUserFolder(user, clothesItems, lookFileInfo.getStorageFileName());
         //TODO Add testing off created look image

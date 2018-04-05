@@ -52,17 +52,6 @@
             </div>
             <div class="form-group">
                 <div class="row">
-                    <div class="col-md-12">
-                        <label for="select-sex"></label>
-                        <select class="form-control" id="select-sex" name="sex" form="classifier-form">
-                            <option value="MALE">Male</option>
-                            <option value="FEMALE">Female</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="row">
                     <div class="col-md-4"></div>
                     <div id="submit-button-place" class="col-md-4">
                         <button onclick="uploadImagesForClassification()" class="btn btn-success form-control" type="button">получить рекомендации</button>
@@ -72,7 +61,6 @@
             </div>
         </form>
         <div id="result-row" class="row">
-
         </div>
     </div>
     <footer class="page-footer font-small primary-color pt-4 mt-4">
@@ -172,13 +160,16 @@
             resultRow.html('');
             resultRow.append(
                 '<h3>Мы предлагаем Вам следующий вариант</h3>' +
-                '<div class="col-md-4">' +
+                '<div class="col-md-1"></div>' +
+                '<div class="col-md-2">' +
                     '<img src="/images/dislike.jpg" width="100" height="100" alt="Не нравится" onclick="userSaidDislike(' + lookImage.id + ')">' +
                 '</div>' +
-                '<div class="col-md-4">' +
-                    '<img src="/file/' + lookImage.fileInfo.id + '" width="400">' +
+                '<div class="col-md-2"></div>' +
+                '<div class="col-md-3">' +
+                    '<img src="/file/' + lookImage.fileInfo.id + '" width="auto" height="450">' +
                 '</div>' +
-                '<div class="col-md-4">' +
+                '<div class="col-md-2"></div>' +
+                '<div class="col-md-2">' +
                     '<img src="/images/like.jpg" width="100" height="100" alt="Нравится" onclick="userSaidLike(' + lookImage.id + ')">' +
                 '</div>'
             );

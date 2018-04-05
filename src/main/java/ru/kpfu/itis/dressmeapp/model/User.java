@@ -23,4 +23,7 @@ public class User {
     private Long id;
 
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    private Sex sex;
 }

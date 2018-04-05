@@ -3,6 +3,7 @@ package ru.kpfu.itis.dressmeapp.services.impl;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.kpfu.itis.dressmeapp.form.UserRegistrationForm;
+import ru.kpfu.itis.dressmeapp.model.Sex;
 import ru.kpfu.itis.dressmeapp.model.User;
 import ru.kpfu.itis.dressmeapp.model.UserData;
 import ru.kpfu.itis.dressmeapp.repositories.UserDataRepository;
@@ -33,7 +34,7 @@ public class RegistrationServiceImpl implements RegistrationService {
 
     @Override
     public void register(UserRegistrationForm form) {
-        User user = User.builder().name(form.getLogin()).build();
+        User user = User.builder().name(form.getLogin()).sex(Sex.valueOf(form.getSex())).build();
         userRepository.save(user);
 
         UserData userData = UserData.builder()
@@ -44,8 +45,7 @@ public class RegistrationServiceImpl implements RegistrationService {
                 .build();
         userDataRepository.save(userData);
         fileStorageUtil.createUserFolder(userData.getId());
-
-        // TODO: 05.04.18 Add preset data to the folder
+        fileStorageUtil.copyPresetToUserFolder(user.getId(), user.getSex());
     }
 
 }

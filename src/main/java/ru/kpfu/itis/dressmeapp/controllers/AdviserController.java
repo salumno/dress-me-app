@@ -5,7 +5,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.kpfu.itis.dressmeapp.form.UserPhotoUploadForm;
 import ru.kpfu.itis.dressmeapp.model.ClothesAdviceBunch;
-import ru.kpfu.itis.dressmeapp.model.Sex;
 import ru.kpfu.itis.dressmeapp.services.ClothesService;
 import ru.kpfu.itis.dressmeapp.services.ImageClassificationService;
 
@@ -31,9 +30,9 @@ public class AdviserController {
 
     @PostMapping("/upload")
     public ClothesAdviceBunch classifyImage(@ModelAttribute UserPhotoUploadForm form, Authentication authentication) {
-        String resultBodyType = imageClassificationService.classify(form);
+        String resultBodyType = imageClassificationService.classify(authentication, form);
         System.out.println(resultBodyType);
-        return clothesService.getClothesAdvice(authentication, resultBodyType, Sex.valueOf(form.getSex()));
+        return clothesService.getClothesAdvice(authentication, resultBodyType);
     }
 
     @GetMapping("/look/{id}/dislike")

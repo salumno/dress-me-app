@@ -1,5 +1,6 @@
 package ru.kpfu.itis.dressmeapp.services;
 
+import org.springframework.security.core.Authentication;
 import ru.kpfu.itis.dressmeapp.form.UserPhotoUploadForm;
 
 /**
@@ -7,5 +8,5 @@ import ru.kpfu.itis.dressmeapp.form.UserPhotoUploadForm;
  * 11-601 ITIS KPFU
  */
 public interface ImageClassificationService {
-    String classify(UserPhotoUploadForm form);
+    String classify(Authentication authentication, UserPhotoUploadForm form);
 }
