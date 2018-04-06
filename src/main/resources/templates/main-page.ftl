@@ -21,6 +21,9 @@
         <a class="navbar-brand" href="/">DressMeApp</a>
     </nav>
     <div class="container" style="padding-top: 90px">
+        <#if model.isUserInWaiting>
+            <h3 style="text-align: center">Извините, с Вашего последнего визита прошло не достаточно времени. Попробуйте позже.</h3>
+        <#else>
         <div>
             <h3 style="text-align: center">Рекомендации по выбору одежды на основе Вашего телосложения</h3>
         </div>
@@ -60,6 +63,7 @@
                 </div>
             </div>
         </form>
+        </#if>
         <div id="result-row" class="row">
         </div>
     </div>

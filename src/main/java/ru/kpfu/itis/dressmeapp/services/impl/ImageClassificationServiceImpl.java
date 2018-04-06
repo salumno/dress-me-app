@@ -11,7 +11,7 @@ import ru.kpfu.itis.dressmeapp.model.Image;
 import ru.kpfu.itis.dressmeapp.repositories.ImageRepository;
 import ru.kpfu.itis.dressmeapp.services.AuthenticationService;
 import ru.kpfu.itis.dressmeapp.services.ImageClassificationService;
-import ru.kpfu.itis.dressmeapp.util.ClassificationUtil;
+import ru.kpfu.itis.dressmeapp.util.BodyShapeClassificationUtil;
 import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
 
 /**
@@ -23,11 +23,11 @@ import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
 public class ImageClassificationServiceImpl implements ImageClassificationService {
     private ImageRepository imageRepository;
     private FileStorageUtil fileStorageUtil;
-    private ClassificationUtil classificationUtil;
+    private BodyShapeClassificationUtil classificationUtil;
     private AuthenticationService authenticationService;
 
     @Autowired
-    public ImageClassificationServiceImpl(ImageRepository imageRepository, FileStorageUtil fileStorageUtil, ClassificationUtil classificationUtil, AuthenticationService authenticationService) {
+    public ImageClassificationServiceImpl(ImageRepository imageRepository, FileStorageUtil fileStorageUtil, BodyShapeClassificationUtil classificationUtil, AuthenticationService authenticationService) {
         this.imageRepository = imageRepository;
         this.fileStorageUtil = fileStorageUtil;
         this.classificationUtil = classificationUtil;

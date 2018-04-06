@@ -15,7 +15,7 @@ import java.util.concurrent.Future;
  */
 
 @Component
-public class ClassificationUtil {
+public class BodyShapeClassificationUtil {
     private final String FEMALE_FACE_PREFIX = "female_face_";
     private final String FEMALE_PROFILE_PREFIX = "female_profile_";
     private final String MALE_FACE_PREFIX = "male_face_";
@@ -30,7 +30,7 @@ public class ClassificationUtil {
     private DockerUtil dockerUtil;
     private ExecutorService executorService;
 
-    public ClassificationUtil(DockerUtil dockerUtil) {
+    public BodyShapeClassificationUtil(DockerUtil dockerUtil) {
         this.dockerUtil = dockerUtil;
         executorService = Executors.newCachedThreadPool();
     }

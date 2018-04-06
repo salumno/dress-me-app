@@ -10,9 +10,10 @@ import ru.kpfu.itis.dressmeapp.repositories.ClothesItemRepository;
 import ru.kpfu.itis.dressmeapp.repositories.LookImageRepository;
 import ru.kpfu.itis.dressmeapp.services.AuthenticationService;
 import ru.kpfu.itis.dressmeapp.services.ClothesService;
-import ru.kpfu.itis.dressmeapp.util.ClassificationUtil;
+import ru.kpfu.itis.dressmeapp.util.BodyShapeClassificationUtil;
 import ru.kpfu.itis.dressmeapp.util.DockerUtil;
 import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
+import ru.kpfu.itis.dressmeapp.util.LookImageClassificationUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -32,6 +33,7 @@ public class ClothesServiceImpl implements ClothesService {
     private FileStorageUtil fileStorageUtil;
     private LookImageRepository lookImageRepository;
     private DockerUtil dockerUtil;
+    private LookImageClassificationUtil lookImageClassificationUtil;
     private Random random;
 
     public ClothesServiceImpl(ClothesItemRepository clothesItemRepository, AuthenticationService authenticationService, FileStorageUtil fileStorageUtil, LookImageRepository lookImageRepository, DockerUtil dockerUtil) {
@@ -47,7 +49,7 @@ public class ClothesServiceImpl implements ClothesService {
     public ClothesAdviceBunch getClothesAdvice(Authentication authentication, String bodyType) {
         ClothesAdviceBunch bunch = ClothesAdviceBunch.builder().type(bodyType).lookImage(null).build();
         User user = authenticationService.getUserByAuthentication(authentication).getUser();
-        if (!bodyType.equals(ClassificationUtil.CLASSIFICATION_DONT_HAVE_RESULT) && !bodyType.equals(ClassificationUtil.CLASSIFICATION_COMPLETELY_FAILED)) {
+        if (!bodyType.equals(BodyShapeClassificationUtil.CLASSIFICATION_DONT_HAVE_RESULT) && !bodyType.equals(BodyShapeClassificationUtil.CLASSIFICATION_COMPLETELY_FAILED)) {
             LookImage lookImage = createLookImageForUser(user, bodyType);
             lookImageRepository.save(lookImage);
             bunch.setLookImage(lookImage);
@@ -56,25 +58,23 @@ public class ClothesServiceImpl implements ClothesService {
     }
 
     private LookImage createLookImageForUser(User user, String bodyType) {
-        List<ClothesItem> clothesItems = formClothesItems(bodyType, user.getSex());
-
         FileInfo lookFileInfo = fileStorageUtil.createUserLookFileInfo(user.getId());
         LookImage lookImage = LookImage.builder().user(user).fileInfo(lookFileInfo).bodyType(bodyType).sex(user.getSex()).tryCount(0).build();
-
-        putLookImageIntoUserFolder(user, clothesItems, lookFileInfo.getStorageFileName());
-        //TODO Add testing off created look image
+        do {
+            List<ClothesItem> clothesItems = formClothesItems(bodyType, user.getSex());
+            putLookImageIntoUserFolder(user, clothesItems, lookFileInfo.getStorageFileName());
+        } while (!lookImageClassificationUtil.isLookLikable(lookImage, user));
         return lookImage;
     }
 
     private void updateLookImageForUser(LookImage lookImage) {
-        List<ClothesItem> clothesItems = formClothesItems(lookImage.getBodyType(), lookImage.getSex());
-
         User user = lookImage.getUser();
         FileInfo lookFileInfo = fileStorageUtil.createUserLookFileInfo(user.getId());
         lookImage.setFileInfo(lookFileInfo);
-
-        putLookImageIntoUserFolder(user, clothesItems, lookFileInfo.getStorageFileName());
-        //TODO Add testing off created look image
+        do {
+            List<ClothesItem> clothesItems = formClothesItems(lookImage.getBodyType(), lookImage.getSex());
+            putLookImageIntoUserFolder(user, clothesItems, lookFileInfo.getStorageFileName());
+        } while (!lookImageClassificationUtil.isLookLikable(lookImage, user));
     }
     
     private void putLookImageIntoUserFolder(User user, List<ClothesItem> clothesItems, String lookFileName) {
@@ -102,7 +102,7 @@ public class ClothesServiceImpl implements ClothesService {
 
     private List<ClothesItem> formClothesItems(String bodyType, Sex sex) {
         List<ClothesItem> clothesItems = Lists.newArrayList();
-        if (!bodyType.equals(ClassificationUtil.CLASSIFICATION_DONT_HAVE_RESULT) && !bodyType.equals(ClassificationUtil.CLASSIFICATION_COMPLETELY_FAILED)) {
+        if (!bodyType.equals(BodyShapeClassificationUtil.CLASSIFICATION_DONT_HAVE_RESULT) && !bodyType.equals(BodyShapeClassificationUtil.CLASSIFICATION_COMPLETELY_FAILED)) {
             for (ClothesItemCategory category: ClothesItemCategory.values()) {
                 List<ClothesItem> items = clothesItemRepository.findAllBySexAndBodyTypeAndCategory(sex, bodyType, category);
                 int randomIndex = calculateRandomIndex(items.size());
@@ -143,7 +143,7 @@ public class ClothesServiceImpl implements ClothesService {
         if (lookImage.getTryCount() < TRY_LIMIT) {
             return offerUserAnotherLook(lookImage);
         } else {
-            // TODO: 05.04.18 запустить переобучение
+            lookImageClassificationUtil.retrainUserNetwork(user);
             return null;
         }
     }
@@ -165,7 +165,7 @@ public class ClothesServiceImpl implements ClothesService {
         }
         FileInfo fileInfo = lookImage.getFileInfo();
         fileStorageUtil.putFileIntoUserLikedFolder(user.getId(), fileInfo);
-        // TODO: 05.04.18 запустить переобучение
+        lookImageClassificationUtil.retrainUserNetwork(user);
         return "Success";
     }
 
