@@ -15,9 +15,7 @@ import java.util.concurrent.Future;
  */
 
 @Component
-public class ClassificationUtil {
-    private final String CONTAINER_NAME = "tensorflow";
-
+public class BodyShapeClassificationUtil {
     private final String FEMALE_FACE_PREFIX = "female_face_";
     private final String FEMALE_PROFILE_PREFIX = "female_profile_";
     private final String MALE_FACE_PREFIX = "male_face_";
@@ -32,7 +30,7 @@ public class ClassificationUtil {
     private DockerUtil dockerUtil;
     private ExecutorService executorService;
 
-    public ClassificationUtil(DockerUtil dockerUtil) {
+    public BodyShapeClassificationUtil(DockerUtil dockerUtil) {
         this.dockerUtil = dockerUtil;
         executorService = Executors.newCachedThreadPool();
     }
@@ -58,7 +56,7 @@ public class ClassificationUtil {
         System.out.println("Classification started");
         String[] command = getImageClassificationCommand(filename, sex, type);
         ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
-        dockerUtil.execDockerCmd(CONTAINER_NAME, command, resultStream);
+        dockerUtil.execTensorflowContainerCmd(command, resultStream);
         String rawResult =  new String(resultStream.toByteArray(), "UTF-8");
         return classificationAnswer(rawResult);
     }
@@ -136,7 +134,7 @@ public class ClassificationUtil {
         String command1 = "cd local/";
         String command2 = "python bw-converter.py " + fileName;
         String command3 = detectRightClassifier(fileName, sex, type);
-        return new String[]{"sh", "-c", command1 + " && " + command2 + " && " + command3};
+        return dockerUtil.createExecCommands(command1, command2, command3);
     }
 
     private String detectRightClassifier(String fileName, Sex sex, ImageType type) {

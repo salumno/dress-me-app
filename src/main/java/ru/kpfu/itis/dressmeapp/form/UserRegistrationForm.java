@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * Created by Melnikov Semen
@@ -15,7 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor
 @Getter
 @Setter
-public class UserPhotoUploadForm {
-    private MultipartFile face;
-    private MultipartFile profile;
+public class UserRegistrationForm {
+    private String login;
+    private String password;
+    private String repeatedPassword;
+    private String sex;
 }

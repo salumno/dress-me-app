@@ -1,6 +1,7 @@
 package ru.kpfu.itis.dressmeapp.services.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.kpfu.itis.dressmeapp.form.UserPhotoUploadForm;
@@ -8,8 +9,9 @@ import ru.kpfu.itis.dressmeapp.model.ClassifiedImageFilenameDuo;
 import ru.kpfu.itis.dressmeapp.model.FileInfo;
 import ru.kpfu.itis.dressmeapp.model.Image;
 import ru.kpfu.itis.dressmeapp.repositories.ImageRepository;
+import ru.kpfu.itis.dressmeapp.services.AuthenticationService;
 import ru.kpfu.itis.dressmeapp.services.ImageClassificationService;
-import ru.kpfu.itis.dressmeapp.util.ClassificationUtil;
+import ru.kpfu.itis.dressmeapp.util.BodyShapeClassificationUtil;
 import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
 
 /**
@@ -21,19 +23,22 @@ import ru.kpfu.itis.dressmeapp.util.FileStorageUtil;
 public class ImageClassificationServiceImpl implements ImageClassificationService {
     private ImageRepository imageRepository;
     private FileStorageUtil fileStorageUtil;
-    private ClassificationUtil classificationUtil;
+    private BodyShapeClassificationUtil classificationUtil;
+    private AuthenticationService authenticationService;
 
     @Autowired
-    public ImageClassificationServiceImpl(ImageRepository imageRepository, FileStorageUtil fileStorageUtil, ClassificationUtil classificationUtil) {
+    public ImageClassificationServiceImpl(ImageRepository imageRepository, FileStorageUtil fileStorageUtil, BodyShapeClassificationUtil classificationUtil, AuthenticationService authenticationService) {
         this.imageRepository = imageRepository;
         this.fileStorageUtil = fileStorageUtil;
         this.classificationUtil = classificationUtil;
+        this.authenticationService = authenticationService;
     }
 
     @Override
-    public String classify(UserPhotoUploadForm form) {
+    public String classify(Authentication authentication, UserPhotoUploadForm form) {
+        String sex = authenticationService.getUserByAuthentication(authentication).getUser().getSex().toString();
         ClassifiedImageFilenameDuo filenameDuo = saveUploadedImages(form);
-        return classificationUtil.startClassification(filenameDuo, form.getSex());
+        return classificationUtil.startClassification(filenameDuo, sex);
     }
 
     private ClassifiedImageFilenameDuo saveUploadedImages(UserPhotoUploadForm form) {

@@ -1,6 +1,7 @@
 package ru.kpfu.itis.dressmeapp.util;
 
 import lombok.SneakyThrows;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.kpfu.itis.dressmeapp.model.ClothesItem;
 import ru.kpfu.itis.dressmeapp.model.FileInfo;
 import ru.kpfu.itis.dressmeapp.model.Image;
+import ru.kpfu.itis.dressmeapp.model.Sex;
 import ru.kpfu.itis.dressmeapp.repositories.FileInfoRepository;
 
 import javax.servlet.http.HttpServletResponse;
@@ -16,6 +18,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
@@ -25,6 +28,13 @@ import java.util.UUID;
  */
 @Component
 public class FileStorageUtil {
+
+    private final String MALE_PRESET = "male-user-preset";
+    private final String FEMALE_PRESET = "female-user-preset";
+    private final String FEMALE_LABELS = "user_female_output_labels.txt";
+    private final String FEMALE_GRAPH = "user_female_output_graph.pb";
+    private final String MALE_LABELS = "user_male_output_labels.txt";
+    private final String MALE_GRAPH = "user_male_output_graph.pb";
 
     @Value("${storage.path}")
     private String storagePath;
@@ -36,6 +46,22 @@ public class FileStorageUtil {
 
     public FileStorageUtil(FileInfoRepository fileInfoRepository) {
         this.fileInfoRepository = fileInfoRepository;
+    }
+
+    @SneakyThrows
+    public void createUserFolder(Long userId) {
+        String storagePath = getUserFolderPath(userId);
+        String likeSubfolderPath = storagePath + "/like";
+        String dislikeSubfolderPath = storagePath + "/dislike";
+        String[] paths = { storagePath, likeSubfolderPath, dislikeSubfolderPath };
+        for (String dir: paths) {
+            Path path = Paths.get(dir);
+            Files.createDirectories(path);
+        }
+    }
+
+    private String getUserFolderPath(Long userId) {
+        return storagePath + "/" + "user-" + userId;
     }
 
     public FileInfo getImageFileInfoByMultipart(MultipartFile file) {
@@ -102,5 +128,63 @@ public class FileStorageUtil {
         InputStream inputStream = new FileInputStream(new File(fileInfo.getPath()));
         IOUtils.copy(inputStream, response.getOutputStream());
         response.flushBuffer();
+    }
+
+    public FileInfo createUserLookFileInfo(Long userId) {
+        String name = "user-look.jpg";
+        FileInfo fileInfo = FileInfo.builder()
+                .originalFileName(name)
+                .storageFileName(createStorageFileName(name))
+                .type("image/jpeg")
+                .build();
+        fileInfo.setPath(getLookImageFullPath(fileInfo.getStorageFileName(), userId));
+        return fileInfo;
+    }
+
+    private String getLookImageFullPath(String storageFileName, Long userId) {
+        return getUserFolderPath(userId) + "/" + storageFileName;
+    }
+
+    public void putFileIntoUserDislikedFolder(Long userId, FileInfo fileInfo) {
+        moveFileIntoSubfolder("dislike", fileInfo, userId);
+    }
+
+    public void putFileIntoUserLikedFolder(Long userId, FileInfo fileInfo) {
+        moveFileIntoSubfolder("like", fileInfo, userId);
+    }
+
+    @SneakyThrows
+    private void moveFileIntoSubfolder(String subfolderName, FileInfo fileInfo, Long userId) {
+        String newPath = getUserFolderPath(userId) + "/" + subfolderName + "/" + fileInfo.getStorageFileName();
+        Path currentDir = Paths.get(fileInfo.getPath());
+        Path newDir = Paths.get(newPath);
+        Files.move(currentDir, newDir);
+        fileInfo.setPath(newPath);
+        fileInfoRepository.save(fileInfo);
+    }
+
+    @SneakyThrows
+    public void copyPresetToUserFolder(Long userId, Sex sex) {
+        String presetPath = storagePath + "/";
+        String userFolderPath = getUserFolderPath(userId);
+        Path graphPath;
+        Path labelsPath;
+        if (sex.equals(Sex.MALE)) {
+            graphPath = Paths.get(storagePath + "/" + MALE_GRAPH);
+            labelsPath = Paths.get(storagePath + "/" + MALE_LABELS);
+            presetPath += MALE_PRESET;
+        } else {
+            graphPath = Paths.get(storagePath + "/" + FEMALE_GRAPH);
+            labelsPath = Paths.get(storagePath + "/" + FEMALE_LABELS);
+            presetPath += FEMALE_PRESET;
+        }
+        File sourceLike = new File(presetPath + "/like");
+        File sourceDislike = new File(presetPath + "/dislike");
+        File destLike = new File(userFolderPath + "/like");
+        File destDislike = new File(userFolderPath + "/dislike");
+        FileUtils.copyDirectory(sourceLike, destLike);
+        FileUtils.copyDirectory(sourceDislike, destDislike);
+        Files.copy(graphPath, Paths.get(storagePath + "/user_" + userId + "_output_graph.pb"));
+        Files.copy(labelsPath, Paths.get(storagePath + "/user_" + userId + "_output_labels.txt"));
     }
 }

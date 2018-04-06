@@ -19,10 +19,31 @@ import java.util.stream.Collectors;
 @Component
 public class DockerUtil {
 
+    private final String TENSORFLOW_CONTAINER_NAME = "tensorflow";
+
     @Autowired
     private DockerClient docker;
 
-    public void execDockerCmd(String containerName, String[] command, ByteArrayOutputStream resultStream) {
+    public void execTensorflowContainerCmd(String[] command, ByteArrayOutputStream resultStream) {
+        execDockerCmd(TENSORFLOW_CONTAINER_NAME, command, resultStream);
+    }
+
+    public String[] createExecCommands(String... commands) {
+        String[] result = new String[3];
+        result[0] = "sh";
+        result[1] = "-c";
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < commands.length; i++) {
+            sb.append(commands[i]);
+            if (i != commands.length - 1) {
+                sb.append(" && ");
+            }
+        }
+        result[2] = sb.toString();
+        return result;
+    }
+
+    private void execDockerCmd(String containerName, String[] command, ByteArrayOutputStream resultStream) {
         try {
             String containerId = getContainersByName(containerName).get(0).getId();
             ExecCreateCmdResponse execCreateCmdResponse = docker.execCreateCmd(containerId)
