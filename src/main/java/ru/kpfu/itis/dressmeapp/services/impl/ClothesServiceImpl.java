@@ -145,7 +145,7 @@ public class ClothesServiceImpl implements ClothesService {
             return offerUserAnotherLook(lookImage);
         } else {
             lookImageClassificationUtil.retrainUserNetwork(user);
-            return null;
+            return ClothesAdviceBunch.builder().lookImage(null).type("limit").build();
         }
     }
 

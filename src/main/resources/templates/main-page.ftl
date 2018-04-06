@@ -157,10 +157,6 @@
 
         function writeResult(data) {
             let resultRow = $('#result-row');
-            if (data == null) {
-                pasteErrorAlertMessage('limit');
-                return;
-            }
             var lookImage = data.lookImage;
             if (lookImage == null) {
                 pasteErrorAlertMessage(data.type);
