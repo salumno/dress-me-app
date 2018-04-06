@@ -46,7 +46,7 @@
             </div>
         </form>
     </div>
-    <footer class="page-footer font-small primary-color pt-4 mt-4">
+    <footer class="page-footer fixed-bottom font-small primary-color pt-4 mt-4">
         <div class="container-fluid text-center text-md-left">
             <div class="row">
                 <div class="col-md-6">

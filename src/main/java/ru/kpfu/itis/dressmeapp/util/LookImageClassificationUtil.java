@@ -34,12 +34,8 @@ public class LookImageClassificationUtil {
         ClassificationWaiting cw = classificationWaitingService.createWaitingNote(user);
         Long userId = user.getId();
         Future<Boolean> retrain = executorService.submit(
-                () -> startRetrain(userId)
+                () -> startRetrain(userId, cw)
         );
-        Boolean isRetrained = retrain.get();
-        if (isRetrained) {
-            classificationWaitingService.setStatusDone(cw);
-        }
     }
 
     @SneakyThrows
@@ -52,10 +48,11 @@ public class LookImageClassificationUtil {
         return analiseLikableResult(resultParts[0], resultParts[1]);
     }
 
-    private Boolean startRetrain(Long userId) {
+    private Boolean startRetrain(Long userId, ClassificationWaiting cw) {
         String[] command = getRetrainCommands(userId);
         ByteArrayOutputStream resultStream = new ByteArrayOutputStream();
         dockerUtil.execTensorflowContainerCmd(command, resultStream);
+        classificationWaitingService.setStatusDone(cw);
         return true;
     }
 

@@ -36,12 +36,13 @@ public class ClothesServiceImpl implements ClothesService {
     private LookImageClassificationUtil lookImageClassificationUtil;
     private Random random;
 
-    public ClothesServiceImpl(ClothesItemRepository clothesItemRepository, AuthenticationService authenticationService, FileStorageUtil fileStorageUtil, LookImageRepository lookImageRepository, DockerUtil dockerUtil) {
+    public ClothesServiceImpl(ClothesItemRepository clothesItemRepository, AuthenticationService authenticationService, FileStorageUtil fileStorageUtil, LookImageRepository lookImageRepository, DockerUtil dockerUtil, LookImageClassificationUtil lookImageClassificationUtil) {
         this.clothesItemRepository = clothesItemRepository;
         this.authenticationService = authenticationService;
         this.fileStorageUtil = fileStorageUtil;
         this.lookImageRepository = lookImageRepository;
         this.dockerUtil = dockerUtil;
+        this.lookImageClassificationUtil = lookImageClassificationUtil;
         random = new Random();
     }
 

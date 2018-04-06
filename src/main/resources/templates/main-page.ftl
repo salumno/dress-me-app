@@ -64,10 +64,15 @@
             </div>
         </form>
         </#if>
+        <div id="like-result"></div>
         <div id="result-row" class="row">
         </div>
     </div>
-    <footer class="page-footer font-small primary-color pt-4 mt-4">
+    <#if model.isUserInWaiting>
+        <footer class="page-footer fixed-bottom font-small primary-color pt-4 mt-4">
+    <#else>
+        <footer class="page-footer font-small primary-color pt-4 mt-4">
+    </#if>
         <div class="container-fluid text-center text-md-left">
             <div class="row">
                 <div class="col-md-6">
@@ -163,17 +168,16 @@
             }
             resultRow.html('');
             resultRow.append(
-                '<h3>Мы предлагаем Вам следующий вариант</h3>' +
                 '<div class="col-md-1"></div>' +
-                '<div class="col-md-2">' +
+                '<div class="col-md-2" id="dislike-button">' +
                     '<img src="/images/dislike.jpg" width="100" height="100" alt="Не нравится" onclick="userSaidDislike(' + lookImage.id + ')">' +
                 '</div>' +
                 '<div class="col-md-2"></div>' +
-                '<div class="col-md-3">' +
+                '<div class="col-md-3" id="image-look">' +
                     '<img src="/file/' + lookImage.fileInfo.id + '" width="auto" height="450">' +
                 '</div>' +
                 '<div class="col-md-2"></div>' +
-                '<div class="col-md-2">' +
+                '<div class="col-md-2" id="like-button">' +
                     '<img src="/images/like.jpg" width="100" height="100" alt="Нравится" onclick="userSaidLike(' + lookImage.id + ')">' +
                 '</div>'
             );
@@ -184,7 +188,7 @@
         }
 
         function userSaidLike(lookImageId) {
-            clearResultRow();
+            clearLookButtons();
             pasteResultLoadingImage();
             $.ajax({
                 url: '/look/' + lookImageId + "/like",
@@ -202,11 +206,16 @@
             })
         }
 
+        function clearLookButtons() {
+            $('#like-button').html('');
+            $('#dislike-button').html('');
+        }
+
         function writeLikeResult(data) {
-            let resultRow = $('#result-row');
-            $('#classifier-form').reset()
+            let likeResultDiv = $('#like-result');
+            $('#classifier-form').reset();
             console.log(data);
-            resultRow.append(
+            likeResultDiv.append(
                     '<h3 style="text-align: center">Мы рады, что Вам понравился предложенный набор!</h3>'
             );
 
